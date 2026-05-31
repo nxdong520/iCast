@@ -20,20 +20,20 @@
 #include "icast-fe.h"
 #include "smit.h"
 
-#define CONFIG_DYNAMIC_DEBUG
+//#define CONFIG_DYNAMIC_DEBUG
 
 #define USB_VID_SMIT							0x29DF
 #define USB_PID_SMIT_ICAST				0x0001
 
 DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 
-static struct icast_fe_config icast_cfg = {
-	.debug = 0,
+static struct icast_fe_config icast_config = {
+	.dtmb = 0,
 };
 
 static int icast_frontend_attach(struct dvb_usb_adapter *adap)
 {
-	if ((adap->fe_adap[0].fe = dvb_attach(icast_fe_attach, adap, &icast_cfg)) != NULL) {
+	if ((adap->fe_adap[0].fe = dvb_attach(icast_fe_attach, adap, &icast_config)) != NULL) {
 		return 0;
 	}
 	info("not attached iCast usb device");
@@ -72,7 +72,7 @@ static struct dvb_usb_device_properties icast_properties = {
 	.num_device_descs = 1,
 	.devices = {
 		{
-			.name = "iCast DTMB/DVBC USB adapter",
+			.name = "iCast DVB USB DONGLE adapter",
 		  .warm_ids = {&icast_id_table[0], NULL},
 		},
 	}
@@ -99,7 +99,7 @@ static int smit_probe(struct usb_interface *intf, const struct usb_device_id *id
     ret = usb_bulk_msg(udev, usb_rcvbulkpipe(udev, SMIT_BULK_ENDPOINT_CMD_RECEIVE), buf, 4, &size, 500);
     if ( ret==0 )
     {
-	    ret = smit_init(udev);
+	    ret = smit_init(udev, &icast_config.dtmb);
 	    if ( ret==0 )
     	{
     		if (0 == dvb_usb_device_init(intf, &icast_properties, THIS_MODULE, 0LL, adapter_nr))
@@ -141,7 +141,7 @@ static void __exit smit_module_exit(void)
 module_init(smit_module_init);
 module_exit(smit_module_exit);
 
-MODULE_DESCRIPTION("SMIT iCast driver");
+MODULE_DESCRIPTION("SMIT iCast dvb driver");
 MODULE_AUTHOR("Xiaodong Ni <nxiaodong520@gmail.com>");
 MODULE_LICENSE("GPL");
 

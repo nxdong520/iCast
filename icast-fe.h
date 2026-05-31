@@ -9,7 +9,7 @@
 #define ICAST_FE_H
 
 struct icast_fe_config {
-	u8 debug;
+	u8 dtmb;
 };
 
 struct dvb_frontend *icast_fe_attach(struct dvb_usb_adapter *adap, const struct icast_fe_config *config);

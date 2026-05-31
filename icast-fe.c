@@ -20,7 +20,7 @@
 #include "smit.h"
 #include "icast-fe.h"
 
-#define CONFIG_DYNAMIC_DEBUG
+//#define CONFIG_DYNAMIC_DEBUG
 
 struct icast_state {
 	struct dvb_usb_device *dev;
@@ -190,7 +190,7 @@ static int icast_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
   return 0;
 }
 
-static const struct dvb_frontend_ops icast_fe_ops = {
+static const struct dvb_frontend_ops icast_dual_mode_fe_ops = {
 	.delsys = { SYS_DVBT, SYS_DVBC_ANNEX_A },
 	.info = {
 		.name = "iCast DTMB/DVBC USB demodulator",
@@ -213,9 +213,38 @@ static const struct dvb_frontend_ops icast_fe_ops = {
 	.release = icast_fe_release,
 	.init = icast_fe_init,
 	.set_frontend = icast_fe_set_frontend,
-	.get_frontend = icast_fe_get_frontend,
 	.get_tune_settings = icast_fe_get_tune_settings,
+	.get_frontend = icast_fe_get_frontend,
+	.read_status = icast_fe_read_status,
+	.read_signal_strength = icast_fe_read_signal_strength,
+	.read_snr = icast_fe_read_snr,
+};
 
+static const struct dvb_frontend_ops icast_single_mode_fe_ops = {
+	.delsys = { SYS_DVBC_ANNEX_A },
+	.info = {
+		.name = "iCast DVBC USB demodulator",
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+		.frequency_min = 10000000,
+		.frequency_max = 862000000,
+		.frequency_stepsize = 10000,
+#else
+		.frequency_min_hz	= 10 * MHz,
+		.frequency_max_hz	= 862 * MHz,
+		.frequency_stepsize_hz	= 10 * kHz,
+#endif
+		.caps =
+			FE_CAN_FEC_AUTO |
+			FE_CAN_QAM_AUTO |
+			FE_CAN_TRANSMISSION_MODE_AUTO |
+			FE_CAN_GUARD_INTERVAL_AUTO
+	},
+
+	.release = icast_fe_release,
+	.init = icast_fe_init,
+	.set_frontend = icast_fe_set_frontend,
+	.get_tune_settings = icast_fe_get_tune_settings,
+	.get_frontend = icast_fe_get_frontend,
 	.read_status = icast_fe_read_status,
 	.read_signal_strength = icast_fe_read_signal_strength,
 	.read_snr = icast_fe_read_snr,
@@ -229,7 +258,14 @@ struct dvb_frontend *icast_fe_attach(struct dvb_usb_adapter *adap, const struct 
 	if (priv == NULL)
 		return NULL;
 	
-	memcpy(&priv->frontend.ops, &icast_fe_ops, sizeof(struct dvb_frontend_ops));
+  if (config->dtmb)
+  {
+  	memcpy(&priv->frontend.ops, &icast_dual_mode_fe_ops, sizeof(struct dvb_frontend_ops));
+  }
+  else
+  {
+  	memcpy(&priv->frontend.ops, &icast_single_mode_fe_ops, sizeof(struct dvb_frontend_ops));
+  }
 	
 	priv->frontend.demodulator_priv = priv;
 	priv->dev = adap->dev;

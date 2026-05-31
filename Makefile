@@ -39,6 +39,7 @@ ccflags-y += -I$(KERNEL_DIR)/$(DVB_CORE_DIR)
 ccflags-y += -I$(KERNEL_DIR)/$(DVB_USB_DIR)
 ccflags-y += -I$(KERNEL_DIR)/$(DVB_USB_V2_DIR)
 ccflags-y += -I$(KERNEL_DIR)/$(DVB_FRONTENDS_DIR)
+ccflags-y += -I$(SRC_DIR)/linuxdvb
 
 all:
 	make -C $(KERNEL_DIR) \
